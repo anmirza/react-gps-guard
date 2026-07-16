@@ -1,6 +1,6 @@
 {
   "name": "react-gps-guard",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A production-quality React component and hook for handling GPS/Geolocation permissions and tracking.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
