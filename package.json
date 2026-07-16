@@ -1,0 +1,59 @@
+{
+  "name": "react-gps-guard",
+  "version": "1.0.0",
+  "description": "A production-quality React component and hook for handling GPS/Geolocation permissions and tracking.",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./styles.css": {
+      "types": "./styles.d.ts",
+      "default": "./dist/index.css"
+    }
+  },
+  "files": [
+    "dist",
+    "styles.d.ts"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anmirza/react-gps-guard.git"
+  },
+  "keywords": [
+    "react",
+    "gps",
+    "geolocation",
+    "guard",
+    "permissions",
+    "location"
+  ],
+  "author": "Ahmed Nabeel <anmirza37@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/placeholder/react-gps-guard/issues"
+  },
+  "homepage": "https://github.com/placeholder/react-gps-guard#readme",
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.2"
+  }
+}

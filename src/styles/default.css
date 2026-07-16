@@ -1,0 +1,92 @@
+.gps-guard-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.gps-guard-loading {
+  height: 100vh;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.gps-guard-bg {
+  min-height: 100vh;
+  padding: 25px;
+  background-color: #f8fafc;
+}
+
+.gps-guard-card {
+  max-width: 500px;
+  width: 100%;
+  background-color: #fff;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+.gps-guard-title {
+  margin-top: 0;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.gps-guard-text {
+  color: #666;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.gps-guard-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.gps-guard-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.gps-guard-btn-secondary {
+  border: 1px solid #ddd;
+  background-color: #fff;
+  color: #000;
+}
+
+.gps-guard-btn-primary {
+  border: none;
+  background-color: #2563eb;
+  color: #fff;
+}
+
+.gps-guard-error-box {
+  background-color: #fff7e6;
+  border: 1px solid #ffd591;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  color: #8c6d1f;
+}
+
+.gps-guard-instructions h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.gps-guard-instructions p {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.gps-guard-instructions ol,
+.gps-guard-instructions ul {
+  margin-top: 10px;
+  padding-left: 20px;
+}
