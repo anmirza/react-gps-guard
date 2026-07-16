@@ -41,9 +41,9 @@
   "author": "Ahmed Nabeel <anmirza37@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/placeholder/react-gps-guard/issues"
+    "url": "https://github.com/anmirza/react-gps-guard/issues"
   },
-  "homepage": "https://github.com/placeholder/react-gps-guard#readme",
+  "homepage": "https://github.com/anmirza/react-gps-guard#readme",
   "peerDependencies": {
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
