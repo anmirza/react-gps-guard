@@ -8,6 +8,9 @@ export interface DefaultErrorProps {
   permission: GPSPermissionState;
   showInstructions: boolean;
   onRetry: () => void;
+  onSkip?: () => void;
+  skipText?: string;
+  isOptional?: boolean;
 }
 
 export const DefaultError: React.FC<DefaultErrorProps> = ({
@@ -15,6 +18,9 @@ export const DefaultError: React.FC<DefaultErrorProps> = ({
   permission,
   showInstructions,
   onRetry,
+  onSkip,
+  skipText = 'Continue without location',
+  isOptional = false,
 }) => {
   const isAndroid = PlatformService.isAndroid();
   const isIOS = PlatformService.isIOS();
@@ -22,9 +28,13 @@ export const DefaultError: React.FC<DefaultErrorProps> = ({
   return (
     <div className="gps-guard-container gps-guard-bg">
       <div className="gps-guard-card">
-        <h2 className="gps-guard-title">📍 Location Required</h2>
+        <h2 className="gps-guard-title">
+          {isOptional ? '📍 Location Unavailable' : '📍 Location Required'}
+        </h2>
         <p className="gps-guard-text">
-          Your location is required before continuing.
+          {isOptional
+            ? 'We could not access your location. You can retry or continue without location.'
+            : 'Your location is required before continuing.'}
         </p>
 
         {error && (
@@ -87,6 +97,16 @@ export const DefaultError: React.FC<DefaultErrorProps> = ({
         <button onClick={onRetry} className="gps-guard-btn gps-guard-btn-secondary" style={{ marginTop: 15, width: '100%' }}>
           Retry
         </button>
+
+        {onSkip && (
+          <button
+            onClick={onSkip}
+            className="gps-guard-btn gps-guard-btn-skip"
+            style={{ marginTop: 10, width: '100%' }}
+          >
+            {skipText}
+          </button>
+        )}
       </div>
     </div>
   );

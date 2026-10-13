@@ -22,4 +22,5 @@ export const STATUS_STATES = {
   PRIMING: 'priming' as const,
   WATCHING: 'watching' as const,
   ERROR: 'error' as const,
+  SKIPPED: 'skipped' as const,
 };

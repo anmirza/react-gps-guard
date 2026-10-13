@@ -14,6 +14,8 @@ export interface UseGPSGuardReturn {
   location: GPSLocation | null;
   error: GPSError | null;
   loading: boolean;
+  isSkipped: boolean;
+  skip: () => void;
   retry: () => void;
   decline: () => void;
   requestPermission: () => void;
@@ -31,6 +33,8 @@ export function useGPSGuard(props: UseGPSGuardProps = {}): UseGPSGuardReturn {
     retryInterval = 3000,
     enablePrimer = true,
     stopAfterMs,
+    optional = false,
+    skipOnError = false,
   } = props;
 
   // Store callbacks in a ref to avoid infinite re-render loops if the user passes inline functions
@@ -45,6 +49,7 @@ export function useGPSGuard(props: UseGPSGuardProps = {}): UseGPSGuardReturn {
     onStartWatching: props.onStartWatching,
     onStopWatching: props.onStopWatching,
     onError: props.onError,
+    onSkip: props.onSkip,
   });
 
   // Update callbacks ref on every render
@@ -60,6 +65,7 @@ export function useGPSGuard(props: UseGPSGuardProps = {}): UseGPSGuardReturn {
       onStartWatching: props.onStartWatching,
       onStopWatching: props.onStopWatching,
       onError: props.onError,
+      onSkip: props.onSkip,
     };
   });
 
@@ -67,10 +73,12 @@ export function useGPSGuard(props: UseGPSGuardProps = {}): UseGPSGuardReturn {
   const [permission, setPermission] = useState<GPSPermissionState>(PERMISSION_STATES.PROMPT);
   const [location, setLocation] = useState<GPSLocation | null>(null);
   const [error, setError] = useState<GPSError | null>(null);
+  const [isSkipped, setIsSkipped] = useState<boolean>(false);
 
   const watchServiceRef = useRef<WatchService | null>(null);
   const isMounted = useRef(false);
   const initialized = useRef(false);
+  const retryRef = useRef<() => void>(() => {});
 
   // Only show loading spinner while actively checking — not when idle (which means uninitialised or declined)
   const loading = status === STATUS_STATES.CHECKING;
@@ -88,7 +96,14 @@ export function useGPSGuard(props: UseGPSGuardProps = {}): UseGPSGuardReturn {
   const handleError = useCallback(
     (err: GPSError) => {
       setError(err);
-      setStatus(STATUS_STATES.ERROR);
+
+      if (optional && skipOnError) {
+        setIsSkipped(true);
+        setStatus(STATUS_STATES.SKIPPED);
+        if (callbacks.current.onSkip) callbacks.current.onSkip();
+      } else {
+        setStatus(STATUS_STATES.ERROR);
+      }
 
       if (err.code === 'PERMISSION_DENIED') {
         setPermission(PERMISSION_STATES.DENIED);
@@ -97,10 +112,24 @@ export function useGPSGuard(props: UseGPSGuardProps = {}): UseGPSGuardReturn {
         if (callbacks.current.onGPSDisabled) callbacks.current.onGPSDisabled();
       }
 
+      if (autoRetry && (err.code === 'TIMEOUT' || err.code === 'POSITION_UNAVAILABLE')) {
+        setTimeout(() => {
+          if (isMounted.current) {
+            retryRef.current();
+          }
+        }, retryInterval);
+      }
+
       if (callbacks.current.onError) callbacks.current.onError(err);
     },
-    []
+    [optional, skipOnError, autoRetry, retryInterval]
   );
+
+  const skip = useCallback(() => {
+    setIsSkipped(true);
+    setStatus(STATUS_STATES.SKIPPED);
+    if (callbacks.current.onSkip) callbacks.current.onSkip();
+  }, []);
 
   const startWatching = useCallback(() => {
     if (watchServiceRef.current) {
@@ -132,13 +161,20 @@ export function useGPSGuard(props: UseGPSGuardProps = {}): UseGPSGuardReturn {
 
   /**
    * Called when the user taps "Not now" on the primer screen.
-   * Sets an error state so the error/retry screen is shown.
+   * If optional is enabled, marks the state as skipped so the user can proceed.
+   * Otherwise sets an error state so the error/retry screen is shown.
    */
   const decline = useCallback(() => {
-    setError({ code: 'PERMISSION_DENIED', message: 'You chose not to share your location.' });
-    setStatus(STATUS_STATES.ERROR);
+    if (optional) {
+      setIsSkipped(true);
+      setStatus(STATUS_STATES.SKIPPED);
+      if (callbacks.current.onSkip) callbacks.current.onSkip();
+    } else {
+      setError({ code: 'PERMISSION_DENIED', message: 'You chose not to share your location.' });
+      setStatus(STATUS_STATES.ERROR);
+    }
     if (callbacks.current.onPermissionDenied) callbacks.current.onPermissionDenied();
-  }, []);
+  }, [optional]);
 
   const requestPermission = useCallback(() => {
     setStatus(STATUS_STATES.CHECKING);
@@ -192,9 +228,11 @@ export function useGPSGuard(props: UseGPSGuardProps = {}): UseGPSGuardReturn {
   }, [enablePrimer, requestPermission, startWatching, handleError]);
 
   const retry = useCallback(() => {
+    setIsSkipped(false);
     if (callbacks.current.onRetry) callbacks.current.onRetry();
     initialize();
   }, [initialize]);
+  retryRef.current = retry;
 
   useEffect(() => {
     isMounted.current = true;
@@ -232,6 +270,8 @@ export function useGPSGuard(props: UseGPSGuardProps = {}): UseGPSGuardReturn {
     location,
     error,
     loading,
+    isSkipped,
+    skip,
     retry,
     decline,
     requestPermission,

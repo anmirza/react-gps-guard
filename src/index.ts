@@ -3,7 +3,7 @@ export * from './types';
 
 // Components
 export { GPSGuard } from './components/GPSGuard';
-export type { GPSGuardProps } from './components/GPSGuard';
+export type { GPSGuardProps, GPSGuardChildren, GPSGuardChildrenProps } from './components/GPSGuard';
 
 export { DefaultLoading } from './components/DefaultLoading';
 export { DefaultPrimer } from './components/DefaultPrimer';

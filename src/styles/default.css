@@ -66,6 +66,16 @@
   color: #fff;
 }
 
+.gps-guard-btn-skip {
+  border: 1px solid #cbd5e1;
+  background-color: transparent;
+  color: #64748b;
+}
+
+.gps-guard-btn-skip:hover {
+  background-color: #f1f5f9;
+}
+
 .gps-guard-error-box {
   background-color: #fff7e6;
   border: 1px solid #ffd591;

@@ -30,11 +30,21 @@ export type GPSOptions = {
   showInstructions?: boolean;
   /** Optional time in milliseconds to automatically stop watching location after starting. */
   stopAfterMs?: number;
+  /**
+   * When true, location is optional. Users can skip or decline location,
+   * allowing children or app content to render without location. Defaults to false.
+   */
+  optional?: boolean;
+  /**
+   * When optional is true and an error occurs, automatically proceed to content
+   * without showing an error screen. Defaults to false.
+   */
+  skipOnError?: boolean;
 };
 
 export type GPSPermissionState = 'prompt' | 'granted' | 'denied' | 'unsupported';
 
-export type GPSStatus = 'idle' | 'checking' | 'priming' | 'watching' | 'error';
+export type GPSStatus = 'idle' | 'checking' | 'priming' | 'watching' | 'error' | 'skipped';
 
 export type GPSError = {
   code: 'PERMISSION_DENIED' | 'POSITION_UNAVAILABLE' | 'TIMEOUT' | 'UNSUPPORTED' | 'UNKNOWN';
@@ -62,4 +72,6 @@ export type GPSCallbacks = {
   onStopWatching?: () => void;
   /** Called when any error occurs. */
   onError?: (error: GPSError) => void;
+  /** Called when location is skipped or user proceeds without location. */
+  onSkip?: () => void;
 };

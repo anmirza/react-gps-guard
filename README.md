@@ -5,6 +5,7 @@ A production-quality React component and hook library for seamlessly handling GP
 ## Features
 
 - **Component & Hook APIs**: Use the declarative `<GPSGuard>` or the `useGPSGuard` hook.
+- **Optional Location Support**: Seamlessly make GPS optional with `optional={true}` so users can skip or continue without giving permission.
 - **Global Context Support**: Wrap your app in `<GPSProvider>` and use `useGPS()` anywhere.
 - **Robust Permission Handling**: Gracefully handles permissions, primer screens, denied states, and disabled GPS scenarios.
 - **Fully Customizable**: Provides clean default UI components while allowing you to easily swap them out.
@@ -52,6 +53,8 @@ function App() {
 
 The `<GPSGuard>` component acts as a boundary. It intercepts the rendering of its children until the user grants location permissions and a valid location is retrieved.
 
+![Basic Component Usage](assets/basic-guard.gif)
+
 ```tsx
 import { GPSGuard } from 'react-gps-guard';
 import 'react-gps-guard/styles.css';
@@ -74,6 +77,8 @@ export function MapFeature() {
 ### 2. Using the Hook (`useGPSGuard`)
 
 If you want complete control over the UI and rendering lifecycle, use the `useGPSGuard` hook directly. This hook does not block rendering, it simply returns the current state.
+
+![Using the Hook](assets/raw-hook.gif)
 
 ```tsx
 import { useGPSGuard } from 'react-gps-guard';
@@ -122,6 +127,8 @@ export function MyLocationComponent() {
 ### 3. Using the Context Provider
 
 To access the user's location from anywhere in your app without prop-drilling or showing multiple permission prompts, wrap your app in a `<GPSProvider>`.
+
+![Using Context Provider](assets/context-provider.gif)
 
 **Setup the Provider:**
 
@@ -195,6 +202,8 @@ import { GPSGuard } from 'react-gps-guard';
 
 For the most flexibility inside the `<GPSGuard>`, use the render props which pass down the required control functions (like `requestPermission` and `retry`).
 
+![Custom UI via Render Props](assets/custom-ui.gif)
+
 ```tsx
 import { GPSGuard } from 'react-gps-guard';
 
@@ -221,6 +230,41 @@ import { GPSGuard } from 'react-gps-guard';
 </GPSGuard>
 ```
 
+### 6. Optional Location Mode
+
+If your application doesn't strictly require location, you can pass `optional={true}` (or simply `optional`) to `<GPSGuard>`.
+
+In this mode:
+- If the user clicks **Not now** on the primer, they immediately proceed to your app content without being blocked.
+- If location permission is denied or GPS is disabled, the error screen provides a **Continue without location** button (or you can use `skipOnError` to bypass error screens entirely).
+- You can provide a function as `children` to access location, whether the user skipped (`isSkipped`), and retry controls.
+
+![Optional Location Mode](assets/optional-guard.gif)
+
+```tsx
+import { GPSGuard } from 'react-gps-guard';
+import 'react-gps-guard/styles.css';
+
+export function StoreLocator() {
+  return (
+    <GPSGuard optional onSkip={() => console.log('User skipped location')}>
+      {({ location, isSkipped, requestPermission }) => (
+        <div>
+          {isSkipped ? (
+            <div>
+              <p>Showing global recommendations.</p>
+              <button onClick={requestPermission}>Enable Location for Local Results</button>
+            </div>
+          ) : (
+            <p>Showing stores near {location?.latitude}, {location?.longitude}</p>
+          )}
+        </div>
+      )}
+    </GPSGuard>
+  );
+}
+```
+
 ---
 
 ## API Reference
@@ -240,6 +284,25 @@ These options can be passed to `<GPSGuard>`, `<GPSProvider>`, or `useGPSGuard`.
 | `enablePrimer` | `boolean` | `true` | Show a friendly primer component before the native browser prompt. |
 | `showInstructions` | `boolean` | `true` | Show OS-specific recovery instructions on the error screen when denied. |
 | `stopAfterMs` | `number` | `undefined` | Optional time in milliseconds to automatically stop tracking after it starts. |
+| `optional` | `boolean` | `false` | When true, location is optional and users can decline or skip to continue. |
+| `skipOnError` | `boolean` | `false` | When optional is true, automatically proceed without showing error screen on failure. |
+
+### Component Props (`GPSGuardProps`)
+
+In addition to all `GPSOptions` and `GPSCallbacks`, `<GPSGuard>` accepts:
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `optional` | `boolean` | `false` | Enables optional mode. |
+| `allowSkip` | `boolean` | `optional` | Whether to show the skip / continue button. |
+| `skipButtonText` | `string` | `'Continue without location'` | Custom label for skip button. |
+| `children` | `ReactNode \| (props) => ReactNode` | - | App content to guard or render prop receiving location and skip states. |
+| `loadingComponent` | `ReactNode` | `<DefaultLoading />` | Custom loading component. |
+| `permissionComponent` | `ReactNode` | `<DefaultPrimer />` | Custom primer component. |
+| `errorComponent` | `ReactNode` | `<DefaultError />` | Custom error component. |
+| `renderLoading` | `() => ReactNode` | - | Custom render prop for loading state. |
+| `renderPermission` | `(requestPermission, decline, skip) => ReactNode` | - | Custom render prop for primer state. |
+| `renderError` | `(error, retry, skip) => ReactNode` | - | Custom render prop for error state. |
 
 ### Event Callbacks (`GPSCallbacks`)
 
@@ -254,6 +317,7 @@ These options can be passed to `<GPSGuard>`, `<GPSProvider>`, or `useGPSGuard`.
 | `onError` | `(error: GPSError) => void` | Fires on any error. |
 | `onStartWatching` | `() => void` | Fires when continuous tracking begins. |
 | `onStopWatching` | `() => void` | Fires when tracking ends. |
+| `onSkip` | `() => void` | Fires when the user skips or chooses to continue without location. |
 
 ### Types
 
@@ -272,7 +336,7 @@ type GPSLocation = {
 ```
 
 **`GPSStatus`**
-`'idle' | 'checking' | 'priming' | 'watching' | 'error'`
+`'idle' | 'checking' | 'priming' | 'watching' | 'error' | 'skipped'`
 
 **`GPSPermissionState`**
 `'prompt' | 'granted' | 'denied' | 'unsupported'`

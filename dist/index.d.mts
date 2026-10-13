@@ -31,9 +31,19 @@ type GPSOptions = {
     showInstructions?: boolean;
     /** Optional time in milliseconds to automatically stop watching location after starting. */
     stopAfterMs?: number;
+    /**
+     * When true, location is optional. Users can skip or decline location,
+     * allowing children or app content to render without location. Defaults to false.
+     */
+    optional?: boolean;
+    /**
+     * When optional is true and an error occurs, automatically proceed to content
+     * without showing an error screen. Defaults to false.
+     */
+    skipOnError?: boolean;
 };
 type GPSPermissionState = 'prompt' | 'granted' | 'denied' | 'unsupported';
-type GPSStatus = 'idle' | 'checking' | 'priming' | 'watching' | 'error';
+type GPSStatus = 'idle' | 'checking' | 'priming' | 'watching' | 'error' | 'skipped';
 type GPSError = {
     code: 'PERMISSION_DENIED' | 'POSITION_UNAVAILABLE' | 'TIMEOUT' | 'UNSUPPORTED' | 'UNKNOWN';
     message: string;
@@ -59,6 +69,8 @@ type GPSCallbacks = {
     onStopWatching?: () => void;
     /** Called when any error occurs. */
     onError?: (error: GPSError) => void;
+    /** Called when location is skipped or user proceeds without location. */
+    onSkip?: () => void;
 };
 
 interface UseGPSGuardProps extends GPSOptions, GPSCallbacks {
@@ -69,6 +81,8 @@ interface UseGPSGuardReturn {
     location: GPSLocation | null;
     error: GPSError | null;
     loading: boolean;
+    isSkipped: boolean;
+    skip: () => void;
     retry: () => void;
     decline: () => void;
     requestPermission: () => void;
@@ -77,8 +91,20 @@ interface UseGPSGuardReturn {
 }
 declare function useGPSGuard(props?: UseGPSGuardProps): UseGPSGuardReturn;
 
+type GPSGuardChildrenProps = {
+    location: GPSLocation | null;
+    permission: GPSPermissionState;
+    status: GPSStatus;
+    error: GPSError | null;
+    loading: boolean;
+    isSkipped: boolean;
+    skip: () => void;
+    retry: () => void;
+    requestPermission: () => void;
+};
+type GPSGuardChildren = ReactNode | ((props: GPSGuardChildrenProps) => ReactNode);
 interface GPSGuardProps extends UseGPSGuardProps {
-    children: ReactNode;
+    children: GPSGuardChildren;
     /** Component to render while loading/checking permissions */
     loadingComponent?: ReactNode;
     /** Component to render to ask for permission before triggering browser prompt */
@@ -87,10 +113,14 @@ interface GPSGuardProps extends UseGPSGuardProps {
     errorComponent?: ReactNode;
     /** Render prop for loading state */
     renderLoading?: () => ReactNode;
-    /** Render prop for primer state */
-    renderPermission?: (requestPermission: () => void, decline: () => void) => ReactNode;
-    /** Render prop for error state */
-    renderError?: (error: any, retry: () => void) => ReactNode;
+    /** Render prop for primer state. Receives (requestPermission, decline, skip) */
+    renderPermission?: (requestPermission: () => void, decline: () => void, skip: () => void) => ReactNode;
+    /** Render prop for error state. Receives (error, retry, skip) */
+    renderError?: (error: any, retry: () => void, skip: () => void) => ReactNode;
+    /** Custom text for the skip/continue button when optional is enabled. Defaults to "Continue without location" */
+    skipButtonText?: string;
+    /** Explicitly allow skipping even if optional is not set. Defaults to value of optional. */
+    allowSkip?: boolean;
 }
 declare const GPSGuard: React.FC<GPSGuardProps>;
 
@@ -99,6 +129,12 @@ declare const DefaultLoading: React.FC;
 interface DefaultPrimerProps {
     onAllow: () => void;
     onDeny: () => void;
+    onSkip?: () => void;
+    isOptional?: boolean;
+    denyText?: string;
+    allowText?: string;
+    title?: string;
+    description?: string;
 }
 declare const DefaultPrimer: React.FC<DefaultPrimerProps>;
 
@@ -107,6 +143,9 @@ interface DefaultErrorProps {
     permission: GPSPermissionState;
     showInstructions: boolean;
     onRetry: () => void;
+    onSkip?: () => void;
+    skipText?: string;
+    isOptional?: boolean;
 }
 declare const DefaultError: React.FC<DefaultErrorProps>;
 
@@ -219,6 +258,7 @@ declare const STATUS_STATES: {
     PRIMING: "priming";
     WATCHING: "watching";
     ERROR: "error";
+    SKIPPED: "skipped";
 };
 
-export { DefaultError, type DefaultErrorProps, DefaultLoading, DefaultPrimer, type DefaultPrimerProps, ERROR_MESSAGES, type GPSCallbacks, type GPSError, GPSGuard, type GPSGuardProps, type GPSLocation, type GPSOptions, type GPSPermissionState, GPSProvider, type GPSProviderProps, type GPSStatus, GeolocationService, PERMISSION_STATES, PermissionService, PlatformService, STATUS_STATES, type UseGPSGuardProps, type UseGPSGuardReturn, WatchService, useGPS, useGPSGuard };
+export { DefaultError, type DefaultErrorProps, DefaultLoading, DefaultPrimer, type DefaultPrimerProps, ERROR_MESSAGES, type GPSCallbacks, type GPSError, GPSGuard, type GPSGuardChildren, type GPSGuardChildrenProps, type GPSGuardProps, type GPSLocation, type GPSOptions, type GPSPermissionState, GPSProvider, type GPSProviderProps, type GPSStatus, GeolocationService, PERMISSION_STATES, PermissionService, PlatformService, STATUS_STATES, type UseGPSGuardProps, type UseGPSGuardReturn, WatchService, useGPS, useGPSGuard };
